@@ -40,76 +40,106 @@ const categoryNames = {
   tas: "Tas"
 };
 
-let chosen = JSON.parse(localStorage.getItem("sholahOutfitChoices") || "[]");
 let category = "semua";
+let chosen = [];
 
-const imagePath = (item) =>
-  `images/${encodeURIComponent(item.image)}`;
+try {
+  const saved = JSON.parse(
+    localStorage.getItem("littleWardrobeChosen") || "[]"
+  );
+
+  if (Array.isArray(saved)) {
+    chosen = saved.filter(id =>
+      outfits.some(item => item.id === id)
+    );
+  }
+} catch {
+  chosen = [];
+}
+
+function imagePath(item) {
+  return `images/${encodeURIComponent(item.image)}`;
+}
 
 function saveChoices() {
-  localStorage.setItem("sholahOutfitChoices", JSON.stringify(chosen));
+  localStorage.setItem(
+    "littleWardrobeChosen",
+    JSON.stringify(chosen)
+  );
 }
 
 function renderWardrobe() {
-  if (!wardrobe) return;
+  const items = outfits.filter(item =>
+    category === "semua" || item.category === category
+  );
 
-  const items = category === "semua"
-    ? outfits
-    : outfits.filter(item => item.category === category);
+  count.textContent = `${items.length} barang`;
 
-  wardrobe.innerHTML = items.map(item => `
-    <article class="outfit-card ${chosen.includes(item.id) ? "is-selected" : ""}">
-      <img
-        src="${imagePath(item)}"
-        alt="${item.name}"
-        loading="lazy"
-        onerror="this.alt='Foto tidak ditemukan'; this.style.minHeight='180px';"
-      >
-      <div class="outfit-info">
-        <h3>${item.name}</h3>
-        <p>${categoryNames[item.category] || item.category}</p>
-        <button
-          type="button"
-          class="choose-btn"
-          data-id="${item.id}"
-        >
-          ${chosen.includes(item.id) ? "✓ Dipilih" : "Pilih Outfit"}
-        </button>
-      </div>
-    </article>
-  `).join("");
+  wardrobe.innerHTML = items.map(item => {
+    const active = chosen.includes(item.id);
 
-  if (count) {
-    count.textContent = `${chosen.length} outfit dipilih`;
-  }
+    return `
+      <article class="outfit-card">
+        <div class="photo-wrap">
+          <img
+            src="${imagePath(item)}"
+            alt="${item.name}"
+            loading="lazy"
+          >
+          <div class="photo-error">
+            Foto belum ditemukan.<br>
+            Periksa nama file di folder images.
+          </div>
+          <button
+            type="button"
+            class="favorite ${active ? "chosen" : ""}"
+            data-id="${item.id}"
+            aria-label="Pilih ${item.name}"
+          >${active ? "♥" : "♡"}</button>
+        </div>
+        <div class="card-info">
+          <h3>${item.name}</h3>
+          <p>${categoryNames[item.category]}</p>
+          <button
+            type="button"
+            class="choose ${active ? "chosen" : ""}"
+            data-id="${item.id}"
+          >${active ? "Dipilih ♥" : "Aku pilih ini ♡"}</button>
+        </div>
+      </article>
+    `;
+  }).join("");
 
-  wardrobe.querySelectorAll(".choose-btn").forEach(button => {
+  wardrobe.querySelectorAll(".photo-wrap img").forEach(img => {
+    img.addEventListener("error", () => {
+      img.classList.add("broken");
+      img.nextElementSibling.classList.add("show");
+    });
+  });
+
+  wardrobe.querySelectorAll("[data-id]").forEach(button => {
     button.addEventListener("click", () => {
-      const id = Number(button.dataset.id);
-
-      if (chosen.includes(id)) {
-        chosen = chosen.filter(itemId => itemId !== id);
-      } else {
-        chosen.push(id);
-      }
-
-      saveChoices();
-      renderWardrobe();
-      renderSelection();
+      toggleChoice(Number(button.dataset.id));
     });
   });
 }
 
-function renderSelection() {
-  if (!selectedItems) return;
+function toggleChoice(id) {
+  chosen = chosen.includes(id)
+    ? chosen.filter(itemId => itemId !== id)
+    : [...chosen, id];
 
+  saveChoices();
+  renderWardrobe();
+  renderSelection();
+}
+
+function renderSelection() {
   const items = outfits.filter(item => chosen.includes(item.id));
 
-  if (selectionText) {
-    selectionText.textContent = items.length
-      ? `Ada ${items.length} barang pilihan Sholah. ♡`
-      : "Belum ada pilihan, sayang.";
-  }
+  selectionText.textContent = items.length
+    ? `Ada ${items.length} barang pilihan Sholah. ♡`
+    : "Belum ada pilihan, sayang.";
 
   selectedItems.innerHTML = items.length
     ? items.map(item => `
@@ -118,178 +148,171 @@ function renderSelection() {
           src="${imagePath(item)}"
           alt="${item.name}"
           loading="lazy"
-          onerror="this.alt='Foto tidak ditemukan';"
         >
-        <div class="selected-card-info">
+        <div class="selected-info">
           <strong>${item.name}</strong>
-          <span>${categoryNames[item.category] || item.category}</span>
+          <span>${categoryNames[item.category]}</span>
           <button
             type="button"
             class="remove-choice"
-            data-id="${item.id}"
+            data-remove="${item.id}"
           >Hapus pilihan</button>
         </div>
       </article>
     `).join("")
-    : `<p class="empty-selection">Pilihan outfit Sholah akan muncul di sini ♡</p>`;
+    : `<p class="empty-selection">
+        Pilihan outfit Sholah akan muncul di sini ♡
+      </p>`;
 
-  selectedItems.querySelectorAll(".remove-choice").forEach(button => {
+  selectedItems.querySelectorAll("img").forEach(img => {
+    img.addEventListener("error", () => {
+      img.classList.add("image-missing");
+      img.alt = "Foto tidak ditemukan: " + img.alt;
+    });
+  });
+
+  selectedItems.querySelectorAll("[data-remove]").forEach(button => {
     button.addEventListener("click", () => {
-      const id = Number(button.dataset.id);
-      chosen = chosen.filter(itemId => itemId !== id);
-      saveChoices();
-      renderWardrobe();
-      renderSelection();
+      toggleChoice(Number(button.dataset.remove));
     });
   });
 }
 
 function injectSelectionStyles() {
-  if (document.getElementById("selection-photo-styles")) return;
-
   const style = document.createElement("style");
-  style.id = "selection-photo-styles";
   style.textContent = `
-    .selected-items {
+    #selected-items.selected-items {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(145px, 1fr));
       gap: 16px;
-      width: 100%;
-      margin-top: 18px;
+      margin: 20px 0;
+      text-align: left;
     }
 
     .selected-card {
       overflow: hidden;
-      border: 1px solid #f3d5dc;
+      border: 1px solid #efceda;
       border-radius: 16px;
-      background: #fffaf8;
-      box-shadow: 0 4px 12px rgba(120, 60, 70, 0.08);
+      background: white;
+      box-shadow: 0 4px 14px #a6537612;
     }
 
     .selected-card img {
       display: block;
       width: 100%;
-      height: 175px;
+      height: 190px;
       object-fit: cover;
-      background: #fae4d9;
+      background: #fae4e9;
     }
 
-    .selected-card-info {
+    .selected-card img.image-missing {
+      height: 80px;
+      object-fit: contain;
+      padding: 10px;
+    }
+
+    .selected-info {
       display: flex;
       flex-direction: column;
-      gap: 7px;
+      gap: 8px;
       padding: 12px;
     }
 
-    .selected-card-info strong {
-      color: #704b53;
+    .selected-info strong {
+      color: #a65376;
       font-size: 14px;
     }
 
-    .selected-card-info span {
-      color: #9b777d;
+    .selected-info span {
+      color: #987f89;
       font-size: 12px;
     }
 
     .remove-choice {
-      border: none;
-      border-radius: 9px;
       padding: 8px;
-      background: #ff8ea1;
-      color: white;
+      border: 0;
+      border-radius: 9px;
+      background: #fff0f4;
+      color: #a65376;
       cursor: pointer;
-      font: inherit;
-      font-size: 12px;
     }
 
     .empty-selection {
       grid-column: 1 / -1;
-      color: #9b777d;
       text-align: center;
-      padding: 20px 8px;
+      padding: 20px 5px;
+      color: #987f89;
     }
 
-    .outfit-card.is-selected {
-      outline: 2px solid #ff8ea1;
-      border-radius: 16px;
+    @media (max-width: 400px) {
+      #selected-items.selected-items {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .selected-card img {
+        height: 155px;
+      }
     }
   `;
 
   document.head.appendChild(style);
 }
 
-function filterCategory(newCategory) {
-  category = newCategory;
-  renderWardrobe();
+document.querySelectorAll(".filter").forEach(button => {
+  button.addEventListener("click", () => {
+    category = button.dataset.category;
 
-  document.querySelectorAll("[data-category]").forEach(button => {
-    button.classList.toggle(
-      "active",
-      button.dataset.category === category
-    );
+    document.querySelectorAll(".filter").forEach(filter => {
+      filter.classList.toggle("active", filter === button);
+    });
+
+    renderWardrobe();
   });
-}
+});
 
-function clearChoices() {
+document.getElementById("open-wardrobe").addEventListener("click", () => {
+  document.getElementById("welcome").classList.add("hidden");
+  document.getElementById("wardrobe-page").classList.remove("hidden");
+
+  renderWardrobe();
+  renderSelection();
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+document.getElementById("back-home").addEventListener("click", () => {
+  document.getElementById("wardrobe-page").classList.add("hidden");
+  document.getElementById("welcome").classList.remove("hidden");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+});
+
+document.getElementById("clear-button").addEventListener("click", () => {
   chosen = [];
   saveChoices();
   renderWardrobe();
   renderSelection();
-}
+});
 
-function shareToWhatsApp() {
+document.getElementById("share-button").addEventListener("click", () => {
   const items = outfits.filter(item => chosen.includes(item.id));
 
   if (!items.length) {
-    alert("Pilih outfit dulu ya, Sholah ♡");
+    alert("Pilih minimal satu barang dulu, yaa ♡");
     return;
   }
 
-  const message = [
-    "Halo, Salsa! ♡",
-    "Ini outfit yang aku pilih dari Little Wardrobe:",
-    "",
-    ...items.map((item, index) =>
-      `${index + 1}. ${item.name} (${categoryNames[item.category] || item.category})`
-    ),
-    "",
-    "Sudah aku pilih khusus buat kamu ♡"
-  ].join("\n");
+  const message =
+    "Hai Salsa, ini pilihan outfit dari Sholah ♡\n\n" +
+    items.map(item =>
+      `♥ ${item.name} — ${categoryNames[item.category]}`
+    ).join("\n") +
+    "\n\nSemoga kamu suka pilihanku, sayang! ♡";
 
   window.open(
-    `https://wa.me/?text=${encodeURIComponent(message)}`,
+    "https://wa.me/?text=" + encodeURIComponent(message),
     "_blank"
   );
-}
-
-document.querySelectorAll("[data-category]").forEach(button => {
-  button.addEventListener("click", () => {
-    filterCategory(button.dataset.category);
-  });
-});
-
-document.querySelectorAll("[data-clear]").forEach(button => {
-  button.addEventListener("click", clearChoices);
-});
-
-document.querySelectorAll("[data-share]").forEach(button => {
-  button.addEventListener("click", shareToWhatsApp);
-});
-
-document.querySelectorAll("[data-show-wardrobe]").forEach(button => {
-  button.addEventListener("click", () => {
-    document.getElementById("home")?.classList.add("hidden");
-    document.getElementById("wardrobe-section")?.classList.remove("hidden");
-    renderWardrobe();
-    renderSelection();
-  });
-});
-
-document.querySelectorAll("[data-show-home]").forEach(button => {
-  button.addEventListener("click", () => {
-    document.getElementById("wardrobe-section")?.classList.add("hidden");
-    document.getElementById("home")?.classList.remove("hidden");
-  });
 });
 
 injectSelectionStyles();
