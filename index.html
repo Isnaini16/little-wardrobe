@@ -1,0 +1,109 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#fff1f5">
+  <title>For Sholah, With Love ♡</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="floating-hearts" aria-hidden="true">♡　♥　♡　♥　♡</div>
+
+  <section id="welcome" class="welcome-page">
+    <div class="letter">
+      <div class="bow">୨୧</div>
+      <p class="eyebrow">A LITTLE SURPRISE JUST FOR YOU</p>
+      <h1>Hello, Sholah ♡</h1>
+      <h2>Selamat datang, Sholah Zubad tercintaku!</h2>
+
+      <div class="divider-heart">♡ ───── ♡ ───── ♡</div>
+
+      <p>Hai, sayangkuuu...</p>
+      <p>
+        Terima kasih sudah membuat aku merasa disayang,
+        salah satunya lewat baju-baju cantik yang kamu pilih
+        dan berikan untukku.
+      </p>
+      <p>
+        Sekarang, aku punya kejutan kecil buat kamu.
+        Aku ingin kamu ikut memilih bagaimana aku akan tampil
+        dengan hadiah-hadiah darimu.
+      </p>
+      <p>
+        Anggap saja ini lemari kecil kita, tempat kamu memilih
+        outfit untuk cewek kesayanganmu. Karena rasanya menyenangkan
+        kalau bisa memakai sesuatu yang kamu pilih dengan penuh sayang.
+      </p>
+
+      <p class="love-line">
+        Satu lemari kecil, dengan banyak cinta di dalamnya. ♡
+      </p>
+
+      <button id="open-wardrobe" class="main-button">
+        Buka hadiah kecilmu ♡
+      </button>
+
+      <p class="signature">Made with love, from your girl, Salsa.</p>
+    </div>
+  </section>
+
+  <main id="wardrobe-page" class="hidden">
+    <header class="mini-hero">
+      <p class="eyebrow">A CLOSET FULL OF LOVE</p>
+      <h1>Little Wardrobe</h1>
+      <p>Sayang, hari ini kamu mau aku pakai apa? ♡</p>
+      <button id="back-home" class="text-button">← Kembali ke surat cinta</button>
+    </header>
+
+    <section class="content">
+      <div class="intro">
+        <h2>Pilihkan outfit untukku ♡</h2>
+        <p>Klik barang yang kamu suka. Kamu boleh memilih lebih dari satu!</p>
+      </div>
+
+      <nav class="filters" aria-label="Kategori outfit">
+        <button class="filter active" data-category="semua">Semua</button>
+        <button class="filter" data-category="atasan">Atasan</button>
+        <button class="filter" data-category="dress">Dress</button>
+        <button class="filter" data-category="celana">Celana</button>
+        <button class="filter" data-category="rok">Rok</button>
+        <button class="filter" data-category="tas">Tas</button>
+      </nav>
+
+      <div class="collection-heading">
+        <h2>Koleksi dari kamu, sayang ♡</h2>
+        <span id="item-count"></span>
+      </div>
+
+      <div id="wardrobe" class="wardrobe"></div>
+
+      <section class="selection">
+        <p class="eyebrow">YOUR FAVORITE PICKS</p>
+        <h2>Yang kamu pilih untukku ♡</h2>
+        <p id="selection-text">Belum ada pilihan, sayang.</p>
+        <div id="selected-items" class="selected-items"></div>
+        <div class="actions">
+          <button id="share-button" class="main-button">
+            Kirim pilihan ke WhatsApp ♡
+          </button>
+          <button id="clear-button" class="secondary-button">
+            Pilih ulang
+          </button>
+        </div>
+        <p class="note">
+          Sudah selesai memilih? Kirim pilihanmu supaya Salsa bisa melihatnya.
+        </p>
+      </section>
+    </section>
+
+    <footer>
+      <p>For Sholah, from Salsa with love. ♡</p>
+      <p>Little Wardrobe © 2026</p>
+    </footer>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
